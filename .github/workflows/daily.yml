@@ -1,0 +1,38 @@
+name: 거래처 인텔리전스 일일 브리프
+
+on:
+  schedule:
+    - cron: "0 23 * * 0-4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: 수집 및 브리프 생성
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: "587"
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python src/main.py --days 2
+
+      - name: 대시보드 데이터 커밋
+        run: |
+          git config user.name  "arania-intel-bot"
+          git config user.email "bot@arania.local"
+          git add docs/
+          git diff --staged --quiet || git commit -m "brief $(TZ=Asia/Seoul date +%Y-%m-%d)"
+          git push
