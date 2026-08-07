@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>거래처 마스터 편집 · 아라니아 CFO실</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+:root{--ink:#1B2A4A;--ink-2:#3A4B6B;--cyan:#0B8FBF;--magenta:#C2185B;
+  --yellow:#B8860B;--paper:#F5F6F9;--rule:#DDE1E8;--mute:#7A8598;--edit:#FFF9E0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:#16202E;
+  font-family:Pretendard,'Malgun Gothic',sans-serif;font-size:13.5px;
+  font-feature-settings:"tnum"}
+.num{font-variant-numeric:tabular-nums}
+header{background:var(--ink);color:#fff;padding:16px 20px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:30}
+h1{margin:0;font-size:16.5px;font-weight:800;letter-spacing:-.03em}
+header a{color:#9FB0CC;font-size:12.5px;text-decoration:none}
+header a:hover{text-decoration:underline}
+.spacer{flex:1}
+.bar2{background:#fff;border-bottom:1px solid var(--rule);padding:10px 20px;
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:sticky;top:52px;z-index:20}
+input[type=search],select{border:1px solid var(--rule);border-radius:3px;padding:6px 9px;
+  font-family:inherit;font-size:12.5px;background:#fff}
+input[type=search]{min-width:190px}
+button{border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:3px;
+  padding:6px 13px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+button.ghost{background:#fff;color:var(--ink)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.count{font-size:12px;color:var(--mute)}
+.dirty{color:var(--magenta);font-weight:700}
+.wrap{padding:14px 20px 60px;overflow-x:auto}
+table{border-collapse:collapse;background:#fff;font-size:12.5px;width:100%;min-width:1400px}
+th{background:var(--ink);color:#fff;padding:8px 6px;text-align:left;font-weight:600;
+  font-size:11.5px;position:sticky;top:101px;z-index:10;white-space:nowrap}
+td{padding:0;border-bottom:1px solid #EDF0F4;border-right:1px solid #F3F5F8}
+td.pad{padding:7px 6px}
+tr:hover td{background:#FAFBFD}
+td input,td select{width:100%;border:0;background:transparent;padding:7px 6px;
+  font-family:inherit;font-size:12.5px;color:#16202E}
+td.ed{background:var(--edit)}
+td.ed input,td.ed select{cursor:text}
+td.changed{background:#FDE7EF;box-shadow:inset 2px 0 0 var(--magenta)}
+td input:focus,td select:focus{outline:2px solid var(--cyan);outline-offset:-2px;background:#fff}
+.g{display:inline-block;width:17px;text-align:center;font-weight:800;font-size:11px;border-radius:2px}
+.gS{background:var(--ink);color:#fff}.gA{background:#C9D4E6;color:var(--ink)}
+.gB{background:#EDF0F5;color:var(--ink-2)}.gC,.gD{background:#F2F4F7;color:var(--mute)}
+.dormant{color:var(--magenta);font-weight:600}
+.r{text-align:right}
+.note{background:#fff;border-left:3px solid var(--cyan);padding:13px 16px;margin:0 20px 14px;
+  font-size:12.5px;line-height:1.6}
+.err{background:#fff;border-left:3px solid var(--magenta);padding:16px 18px;margin:20px}
+code{background:#EDF0F4;padding:1px 5px;border-radius:2px}
+dialog{border:0;border-top:4px solid var(--ink);padding:0;max-width:620px;width:92%;
+  box-shadow:0 18px 50px rgba(20,32,54,.28)}
+dialog::backdrop{background:rgba(20,32,54,.45)}
+.dlg{padding:22px 24px 20px}
+dialog h3{margin:0 0 10px;font-size:15px;color:var(--ink)}
+dialog ol{margin:10px 0 0;padding-left:20px;line-height:1.85;font-size:13px}
+.close{margin-top:16px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>거래처 마스터 편집</h1>
+  <a href="index.html">← 대시보드</a>
+  <div class="spacer"></div>
+  <span class="count" id="stat"></span>
+</header>
+
+<div class="bar2">
+  <input type="search" id="q" placeholder="거래처명 · 사업자번호 검색">
+  <select id="fg"><option value="">등급 전체</option><option>S</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
+  <select id="fs"><option value="">상태 전체</option><option>현행</option><option>휴면</option></select>
+  <select id="fc"><option value="">계열 전체</option></select>
+  <select id="fv"><option value="">검증 전체</option><option value="확인필요">계열 미확정만</option><option value="미확인">로스터 미확인만</option></select>
+  <div class="spacer"></div>
+  <span class="count" id="dirty"></span>
+  <button class="ghost" id="reset" disabled>되돌리기</button>
+  <button id="save" disabled>저장하기</button>
+</div>
+
+<div class="note">
+  노란 칸만 편집됩니다. 매출·사업자번호는 원장에서 산출된 값이라 잠겨 있습니다.
+  <b>별칭</b>은 뉴스 매칭 정확도를 좌우하는 가장 중요한 항목입니다 — 언론이 실제로 쓰는 표기를
+  <code>|</code>로 구분해 모두 넣으십시오. <b>대표 아티스트</b>는 로스터확신도를 <b>높음</b>으로
+  바꿔야 뉴스 매칭에 실제로 사용됩니다.
+</div>
+
+<div class="wrap"><div id="root">불러오는 중…</div></div>
+
+<dialog id="howto"><div class="dlg">
+  <h3>저장한 파일을 GitHub에 반영하기</h3>
+  <p style="font-size:13px;color:#3A4B6B;margin:0">
+    <code>companies.csv</code>가 다운로드 폴더에 저장되었습니다. 아래 순서로 올리면 다음 실행부터 적용됩니다.</p>
+  <ol>
+    <li>저장소에서 <code>config</code> → <code>companies.csv</code> 를 엽니다</li>
+    <li>연필 아이콘(Edit this file)을 누릅니다</li>
+    <li>기존 내용을 전체 선택 후 삭제합니다 (<code>Ctrl+A</code> → <code>Delete</code>)</li>
+    <li>아래 <b>클립보드에 복사</b>를 누른 뒤 붙여넣습니다 (<code>Ctrl+V</code>)</li>
+    <li><b>Commit changes</b> 를 누릅니다</li>
+  </ol>
+  <div class="close">
+    <button id="copy">클립보드에 복사</button>
+    <button class="ghost" id="openrepo">GitHub에서 파일 열기</button>
+    <button class="ghost" id="shut">닫기</button>
+  </div>
+</div></dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = n => Number(n||0).toLocaleString('ko-KR');
+
+// 편집 가능한 열과 입력 방식
+const EDITABLE = {
+  '별칭':'text', '대표아티스트_초안':'text', '계열그룹':'text', '구분':'text',
+  '로스터확신도':['높음','중간','미확인','해당없음'],
+  '모니터링등급':['S','A','B','C','D'], '비고':'text'
+};
+const SHOW = ['code','사업자등록번호','정식명','검색명','별칭','계열그룹','구분',
+  '대표아티스트_초안','로스터확신도','모니터링등급','상태',
+  '누적매출_백만','최근3년_백만','최근12M_백만','최종거래','비고'];
+const LABEL = {code:'코드','사업자등록번호':'사업자번호','정식명':'정식명','검색명':'검색명',
+  '별칭':'별칭 ( | 구분 )','계열그룹':'계열그룹','구분':'구분','대표아티스트_초안':'대표 아티스트',
+  '로스터확신도':'로스터확신도','모니터링등급':'등급','상태':'상태','누적매출_백만':'누적매출',
+  '최근3년_백만':'최근3년','최근12M_백만':'최근12M','최종거래':'최종거래','비고':'비고'};
+const NUMCOL = new Set(['누적매출_백만','최근3년_백만','최근12M_백만']);
+
+let HEAD=[], ROWS=[], ORIG=[];
+
+function parseCSV(text){
+  const rows=[]; let f='',row=[],q=false;
+  text=text.replace(/^\uFEFF/,'');
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(f); f=''; }
+    else if(c==='\n'){ row.push(f); rows.push(row); row=[]; f=''; }
+    else if(c!=='\r') f+=c;
+  }
+  if(f||row.length){row.push(f);rows.push(row);}
+  const head=rows.shift().map(h=>h.trim());
+  return [head, rows.filter(r=>r.length>1).map(r=>Object.fromEntries(head.map((h,i)=>[h,r[i]??''])))];
+}
+function toCSV(head, rows){
+  const cell = v => /[",\n]/.test(v??'') ? '"'+String(v).replace(/"/g,'""')+'"' : (v??'');
+  return '\uFEFF' + [head.join(','), ...rows.map(r=>head.map(h=>cell(r[h])).join(','))].join('\n') + '\n';
+}
+
+function changedCount(){
+  let n=0;
+  ROWS.forEach((r,i)=>Object.keys(EDITABLE).forEach(k=>{ if(r[k]!==ORIG[i][k]) n++; }));
+  return n;
+}
+
+function refreshDirty(){
+  const n = changedCount();
+  $('#dirty').textContent = n ? `변경 ${n}칸` : '';
+  $('#dirty').className = 'count' + (n?' dirty':'');
+  $('#save').disabled = !n; $('#reset').disabled = !n;
+}
+
+function filtered(){
+  const q=$('#q').value.trim().toLowerCase(), g=$('#fg').value, s=$('#fs').value,
+        c=$('#fc').value, v=$('#fv').value;
+  return ROWS.filter(r=>{
+    if(q && !(`${r['정식명']} ${r['검색명']} ${r['사업자등록번호']} ${r['별칭']}`.toLowerCase().includes(q))) return false;
+    if(g && r['모니터링등급']!==g) return false;
+    if(s && r['상태']!==s) return false;
+    if(c && r['계열그룹']!==c) return false;
+    if(v==='확인필요' && r['계열그룹']!=='확인필요') return false;
+    if(v==='미확인' && r['로스터확신도']!=='미확인') return false;
+    return true;
+  });
+}
+
+function draw(){
+  const rows = filtered();
+  const idx = new Map(ROWS.map((r,i)=>[r,i]));
+  const th = SHOW.map(k=>`<th class="${NUMCOL.has(k)?'r':''}">${LABEL[k]}</th>`).join('');
+  const body = rows.map(r=>{
+    const i = idx.get(r);
+    const tds = SHOW.map(k=>{
+      const spec = EDITABLE[k];
+      const changed = spec && r[k]!==ORIG[i][k] ? ' changed' : '';
+      if(spec){
+        const inner = Array.isArray(spec)
+          ? `<select data-i="${i}" data-k="${k}">${spec.map(o=>`<option${o===r[k]?' selected':''}>${o}</option>`).join('')}</select>`
+          : `<input data-i="${i}" data-k="${k}" value="${esc(r[k])}">`;
+        return `<td class="ed${changed}">${inner}</td>`;
+      }
+      if(k==='모니터링등급') return `<td class="pad"><span class="g g${r[k]}">${r[k]}</span></td>`;
+      if(k==='상태') return `<td class="pad${r[k]==='휴면'?' dormant':''}">${esc(r[k])}</td>`;
+      if(NUMCOL.has(k)) return `<td class="pad r num">${fmt(r[k])}</td>`;
+      return `<td class="pad">${esc(r[k])}</td>`;
+    }).join('');
+    return `<tr>${tds}</tr>`;
+  }).join('');
+  $('#root').innerHTML = `<table><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table>`;
+  $('#stat').textContent = `${rows.length} / ${ROWS.length}개사 표시`;
+}
+
+function onEdit(e){
+  const t=e.target; if(!t.dataset.k) return;
+  ROWS[+t.dataset.i][t.dataset.k] = t.value;
+  t.closest('td').classList.toggle('changed',
+    ROWS[+t.dataset.i][t.dataset.k] !== ORIG[+t.dataset.i][t.dataset.k]);
+  refreshDirty();
+}
+
+async function boot(){
+  let text;
+  try{ text = await fetch('data/companies.csv',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.text();}); }
+  catch(e){
+    $('#root').innerHTML = `<div class="err"><b>거래처 데이터를 읽지 못했습니다.</b><br><br>
+      이 페이지는 GitHub Pages 주소로 열어야 합니다.
+      저장소 <b>Settings → Pages → Source</b>를 <code>main</code> 브랜치 <code>/docs</code> 폴더로
+      지정하십시오.<br><span style="color:#7A8598">오류: ${esc(e.message)}</span></div>`;
+    return;
+  }
+  [HEAD, ROWS] = parseCSV(text);
+  ORIG = ROWS.map(r=>({...r}));
+  const groups = [...new Set(ROWS.map(r=>r['계열그룹']).filter(Boolean))].sort();
+  $('#fc').innerHTML = '<option value="">계열 전체</option>' + groups.map(g=>`<option>${esc(g)}</option>`).join('');
+  ['q','fg','fs','fc','fv'].forEach(id=>{
+    $('#'+id).addEventListener(id==='q'?'input':'change', draw);
+  });
+  $('#root').addEventListener('input', onEdit);
+  $('#root').addEventListener('change', onEdit);
+  $('#reset').onclick = ()=>{ if(confirm('편집한 내용을 모두 되돌립니다.')){ ROWS=ORIG.map(r=>({...r})); draw(); refreshDirty(); } };
+  $('#save').onclick = save;
+  $('#shut').onclick = ()=>$('#howto').close();
+  $('#copy').onclick = async ()=>{
+    await navigator.clipboard.writeText(toCSV(HEAD, ROWS).replace(/^\uFEFF/,''));
+    $('#copy').textContent = '복사 완료';
+    setTimeout(()=>$('#copy').textContent='클립보드에 복사', 1800);
+  };
+  $('#openrepo').onclick = ()=>{
+    const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+    const repo = location.pathname.split('/').filter(Boolean)[0] || 'arania-intel';
+    window.open(m ? `https://github.com/${m[1]}/${repo}/edit/main/config/companies.csv`
+                  : 'https://github.com', '_blank');
+  };
+  draw(); refreshDirty();
+}
+
+function save(){
+  const blob = new Blob([toCSV(HEAD, ROWS)], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'companies.csv'; a.click();
+  URL.revokeObjectURL(a.href);
+  $('#howto').showModal();
+}
+
+window.addEventListener('beforeunload', e=>{ if(changedCount()){ e.preventDefault(); e.returnValue=''; } });
+boot();
+</script>
+</body>
+</html>

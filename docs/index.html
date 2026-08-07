@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>거래처 인텔리전스 · 아라니아 CFO실</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2A4A; --ink-2:#3A4B6B; --cyan:#0B8FBF; --magenta:#C2185B;
+  --yellow:#B8860B; --paper:#F5F6F9; --rule:#DDE1E8; --mute:#7A8598;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:#16202E;
+  font-family:Pretendard,'Malgun Gothic',-apple-system,sans-serif;
+  font-size:14px;line-height:1.55;font-feature-settings:"tnum"}
+.num{font-variant-numeric:tabular-nums}
+a{color:var(--ink)}
+.shell{max-width:1120px;margin:0 auto;padding:0 20px 60px}
+
+/* ── 헤더: 인쇄 레지스트레이션 마크 모티프 ── */
+header{background:var(--ink);color:#fff;padding:22px 0 20px;margin-bottom:24px}
+.hrow{max-width:1120px;margin:0 auto;padding:0 20px;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.reg{display:flex;align-items:center;gap:10px}
+.reg svg{flex:none}
+h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.03em}
+.tag{font-size:11.5px;color:#9FB0CC;margin-top:2px}
+select{background:#243657;color:#fff;border:1px solid #3A4B6B;border-radius:3px;
+  padding:6px 10px;font-family:inherit;font-size:12.5px}
+
+/* ── KPI ── */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:26px}
+.kpi{background:#fff;padding:13px 15px;border-left:3px solid var(--cyan)}
+.kpi.risk{border-left-color:var(--magenta)}
+.kpi b{display:block;font-size:26px;font-weight:800;color:var(--ink);letter-spacing:-.03em}
+.kpi span{font-size:11.5px;color:var(--mute)}
+
+/* ── 섹션 ── */
+section{margin-bottom:30px}
+h2{font-size:14.5px;color:var(--ink);margin:0 0 10px;display:flex;align-items:center;gap:8px;
+  letter-spacing:-.01em}
+h2::before{content:"";width:9px;height:9px;flex:none;
+  background:radial-gradient(circle,currentColor 0 2px,transparent 2px 3px,currentColor 3px 4px,transparent 4px)}
+.hint{font-size:11.5px;color:var(--mute);font-weight:400;margin-left:auto}
+
+/* ── 발주 캘린더 레인 (시그니처) ── */
+.lane{background:#fff;padding:18px 18px 10px;overflow-x:auto}
+.axis{position:relative;height:26px;border-bottom:1px solid var(--rule);min-width:640px}
+.tick{position:absolute;top:0;font-size:10.5px;color:var(--mute);transform:translateX(-50%);
+  padding-bottom:4px;white-space:nowrap}
+.tick::after{content:"";position:absolute;left:50%;bottom:-1px;width:1px;height:6px;background:var(--rule)}
+.lanerow{position:relative;height:30px;min-width:640px;border-bottom:1px dotted #EBEEF3}
+.lanelab{position:absolute;left:0;top:7px;font-size:11.5px;font-weight:600;color:var(--ink-2);
+  background:#fff;padding-right:8px;z-index:2}
+.dot{position:absolute;top:8px;height:15px;border-radius:8px;padding:0 8px;font-size:10.5px;
+  line-height:15px;color:#fff;white-space:nowrap;transform:translateX(-50%);cursor:default}
+.dot.pre{background:var(--cyan)} .dot.post{background:var(--magenta)}
+
+/* ── 표 ── */
+table{width:100%;border-collapse:collapse;background:#fff;font-size:12.5px}
+th{background:var(--ink);color:#fff;padding:8px 7px;text-align:left;font-weight:600;font-size:12px}
+td{padding:9px 7px;border-bottom:1px solid #EDF0F4;vertical-align:top}
+tr:hover td{background:#FAFBFD}
+.k{display:inline-block;padding:1px 6px;border-radius:2px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.pre{background:#E1F3FA;color:var(--cyan)} .post{background:#FCE4EC;color:var(--magenta)}
+.u{background:var(--magenta);color:#fff}
+.g{display:inline-block;width:17px;text-align:center;font-weight:800;font-size:11px;
+  border-radius:2px;padding:1px 0}
+.gS{background:var(--ink);color:#fff} .gA{background:#C9D4E6;color:var(--ink)}
+.gB{background:#EDF0F5;color:var(--ink-2)} .gC,.gD{background:#F2F4F7;color:var(--mute)}
+.m{font-size:11px;color:var(--mute)}
+.r{text-align:right}
+.empty{background:#fff;padding:22px;color:var(--mute);font-size:12.5px}
+.bar{height:6px;background:#EDF0F4;position:relative;min-width:70px}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--ink)}
+footer{margin-top:34px;padding-top:12px;border-top:1px solid var(--rule);
+  font-size:11px;color:var(--mute)}
+.err{background:#fff;border-left:3px solid var(--magenta);padding:16px 18px;font-size:13px}
+code{background:#EDF0F4;padding:1px 5px;border-radius:2px;font-size:12px}
+@media(max-width:640px){.hrow{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <div class="reg">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+        <circle cx="13" cy="13" r="8" fill="none" stroke="#7A93C4" stroke-width="1.2"/>
+        <path d="M13 0v26M0 13h26" stroke="#7A93C4" stroke-width="1.2"/>
+        <circle cx="13" cy="13" r="2.6" fill="#0B8FBF"/>
+      </svg>
+      <div>
+        <h1>거래처 인텔리전스</h1>
+        <div class="tag">(주)아라니아 CFO실 · 매출 상위 150개사 상시 감시</div>
+      </div>
+    </div>
+    <div>
+      <label class="tag" for="pick">브리프 </label>
+      <select id="pick"></select>
+      &nbsp;<a href="master.html" style="color:#9FB0CC;font-size:12.5px">거래처 마스터 편집 →</a>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <div id="root"><div class="empty">데이터를 불러오는 중…</div></div>
+</div>
+
+<script>
+const $ = (s,r=document)=>r.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = n => Number(n||0).toLocaleString('ko-KR');
+
+function parseCSV(text){
+  const rows=[]; let f='',row=[],q=false;
+  text=text.replace(/^\uFEFF/,'');
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(f); f=''; }
+    else if(c==='\n'){ row.push(f); rows.push(row); row=[]; f=''; }
+    else if(c!=='\r') f+=c;
+  }
+  if(f||row.length){row.push(f);rows.push(row);}
+  const head=rows.shift();
+  return rows.filter(r=>r.length>1).map(r=>Object.fromEntries(head.map((h,i)=>[h.trim(),r[i]??''])));
+}
+
+async function boot(){
+  let data, comps;
+  try{
+    const [a,b] = await Promise.all([
+      fetch('data/latest.json',{cache:'no-store'}).then(r=>r.json()),
+      fetch('data/companies.csv',{cache:'no-store'}).then(r=>r.text()).then(parseCSV)
+    ]);
+    data=a; comps=b;
+  }catch(e){
+    $('#root').innerHTML = `<div class="err"><b>데이터를 읽지 못했습니다.</b><br><br>
+      이 페이지는 GitHub Pages에서 열어야 합니다. 파일을 더블클릭해 <code>file://</code>로 열면
+      브라우저 보안 정책상 데이터 파일을 읽을 수 없습니다.<br><br>
+      저장소 <b>Settings → Pages → Source</b>를 <code>main</code> 브랜치 <code>/docs</code> 폴더로
+      지정한 뒤, 안내되는 주소로 접속하십시오.<br>
+      <span class="m">오류: ${esc(e.message)}</span></div>`;
+    return;
+  }
+  render(data, comps);
+  briefList();
+}
+
+function laneChart(events){
+  const withDate = events.filter(e=>e.expected_order_by);
+  if(!withDate.length) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = 160, W = 100;
+  const pos = d => Math.min(99, Math.max(1, ((new Date(d)-today)/86400000)/days*W));
+
+  const byGrade = {};
+  withDate.forEach(e=>{ (byGrade[e.grade] ??= []).push(e); });
+  const order = ['S','A','B','C','D'].filter(g=>byGrade[g]);
+
+  const ticks = [0,30,60,90,120,150].map(d=>{
+    const dt = new Date(today.getTime()+d*86400000);
+    return `<span class="tick" style="left:${d/days*W}%">${d===0?'오늘':`+${d}일`}<br>${dt.getMonth()+1}/${dt.getDate()}</span>`;
+  }).join('');
+
+  const rows = order.map(g=>{
+    const dots = byGrade[g].sort((a,b)=>b.score-a.score).slice(0,14).map(e=>
+      `<span class="dot ${e.cat_type==='PRE'?'pre':'post'}" style="left:${pos(e.expected_order_by)}%"
+        title="${esc(e.company)} · ${esc(e.cat_label)} · ${esc(e.expected_order_by)}">${esc(e.company.replace(/^\(주\)/,'').slice(0,7))}</span>`
+    ).join('');
+    return `<div class="lanerow"><span class="lanelab">${g}등급</span>${dots}</div>`;
+  }).join('');
+
+  return `<section><h2>발주 예상 캘린더<span class="hint">이벤트별 통상 리드타임 기준 · 생산 캐파 예약 참고</span></h2>
+    <div class="lane"><div class="axis">${ticks}</div>${rows}</div></section>`;
+}
+
+function tbl(rows){
+  if(!rows.length) return '<div class="empty">해당 없음</div>';
+  return `<table><tr><th style="width:19%">거래처</th><th style="width:14%">이벤트</th>
+    <th>사안</th><th style="width:7%" class="r">스코어</th><th style="width:10%" class="r">발주 예상</th></tr>` +
+    rows.map(e=>`<tr>
+      <td><b>${esc(e.company)}</b><br><span class="m"><span class="g g${e.grade}">${e.grade}</span> ${esc(e.group)}</span></td>
+      <td><span class="k ${e.cat_type==='PRE'?'pre':'post'}">${esc(e.cat_label)}</span></td>
+      <td>${e.alert==='URGENT'?'<span class="k u">긴급</span> ':''}<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title).slice(0,90)}</a>
+        <br><span class="m">${esc(e.keywords)} · ${esc(e.source)}${e.n_articles>1?` · 동일 사안 ${e.n_articles}건 보도`:''} · 매칭 ${esc(e.match)}</span></td>
+      <td class="r num"><b>${e.score}</b></td>
+      <td class="r num">${esc(e.expected_order_by||'-')}</td></tr>`).join('') + '</table>';
+}
+
+function portfolio(comps){
+  const n = v => Number(v||0);
+  const tot3 = comps.reduce((s,c)=>s+n(c['최근3년_백만']),0);
+  const grp = {};
+  comps.forEach(c=>{ const k=c['계열그룹']||'미상'; (grp[k] ??= {n:0,v:0}); grp[k].n++; grp[k].v+=n(c['최근3년_백만']); });
+  const top = Object.entries(grp).sort((a,b)=>b[1].v-a[1].v).slice(0,8);
+  const max = top[0][1].v || 1;
+  return `<section><h2>포트폴리오 집중도<span class="hint">최근 3년 매출 기준 · 단위 백만원</span></h2>
+    <table><tr><th style="width:22%">계열그룹</th><th style="width:10%" class="r">거래처</th>
+      <th style="width:16%" class="r">최근3년</th><th style="width:10%" class="r">비중</th><th>　</th></tr>
+    ${top.map(([k,v])=>`<tr><td><b>${esc(k)}</b></td><td class="r num">${v.n}</td>
+      <td class="r num">${fmt(v.v)}</td><td class="r num">${(v.v/tot3*100).toFixed(1)}%</td>
+      <td><div class="bar"><i style="width:${v.v/max*100}%"></i></div></td></tr>`).join('')}
+    </table></section>`;
+}
+
+function render(d, comps){
+  const ev = d.events||[];
+  const urg = ev.filter(e=>e.alert==='URGENT');
+  const pre = ev.filter(e=>e.cat_type==='PRE' && e.alert!=='URGENT');
+  const post= ev.filter(e=>e.cat_type==='POST'&& e.alert!=='URGENT');
+  const gen = new Date(d.generated);
+  const funnel = Object.entries(d.stats||{}).map(([k,v])=>`${k} ${fmt(v)}`).join(' → ');
+
+  $('#root').innerHTML = `
+  <div class="kpis">
+    <div class="kpi risk"><b class="num">${urg.length}</b><span>긴급 · 당일 조치</span></div>
+    <div class="kpi"><b class="num">${pre.length}</b><span>사전지표 · 수주 파이프라인</span></div>
+    <div class="kpi risk"><b class="num">${post.length}</b><span>사후지표 · 채권·리스크</span></div>
+    <div class="kpi"><b class="num">${new Set(ev.map(e=>e.code)).size}</b><span>감지 거래처</span></div>
+    <div class="kpi"><b class="num">${comps.length}</b><span>감시 대상</span></div>
+  </div>
+  ${laneChart(ev)}
+  <section><h2>긴급 — 당일 조치<span class="hint">여신 재검토·견적 선제 제출 대상</span></h2>${tbl(urg)}</section>
+  <section><h2>사전지표 — 수주·생산 계획</h2>${tbl(pre)}</section>
+  <section><h2>사후지표 — 채권·리스크 관리</h2>${tbl(post)}</section>
+  ${portfolio(comps)}
+  <footer>생성 ${gen.toLocaleString('ko-KR')} · 수집 퍼널: ${esc(funnel)}<br>
+  스코어 = 영향도 × 확실성 × 등급배수 × 보도확산 · 긴급 5.0↑ / 브리프 3.0↑ ·
+  거래처당 최대 3건 · 동일 사안 병합 · 출처 Google News · DART 전자공시</footer>`;
+}
+
+async function briefList(){
+  try{
+    const list = await fetch('data/briefs.json',{cache:'no-store'}).then(r=>r.json());
+    $('#pick').innerHTML = list.map((f,i)=>
+      `<option value="briefs/${f}"${i?'':' selected'}>${f.replace('brief_','').replace('.html','')}</option>`).join('');
+    $('#pick').onchange = e => { if(e.target.value) location.href = e.target.value; };
+  }catch(e){ $('#pick').innerHTML = '<option>목록 없음</option>'; }
+}
+boot();
+</script>
+</body>
+</html>
