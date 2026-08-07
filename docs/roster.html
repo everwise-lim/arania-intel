@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>아티스트 로스터 입력 · 아라니아 CFO실</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+:root{--ink:#1B2A4A;--ink-2:#3A4B6B;--cyan:#0B8FBF;--magenta:#C2185B;
+  --paper:#F5F6F9;--rule:#DDE1E8;--mute:#7A8598;--edit:#FFF9E0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:#16202E;
+  font-family:Pretendard,'Malgun Gothic',sans-serif;font-size:13.5px;font-feature-settings:"tnum"}
+.num{font-variant-numeric:tabular-nums}
+header{background:var(--ink);color:#fff;padding:16px 20px;display:flex;align-items:center;
+  gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:30}
+h1{margin:0;font-size:16.5px;font-weight:800;letter-spacing:-.03em}
+header a{color:#9FB0CC;font-size:12.5px;text-decoration:none}
+header a:hover{text-decoration:underline}
+.spacer{flex:1}
+.progress{display:flex;align-items:center;gap:8px;font-size:12px;color:#C9D4E6}
+.pbar{width:130px;height:6px;background:#2B3D60;border-radius:3px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--cyan)}
+
+.bar2{background:#fff;border-bottom:1px solid var(--rule);padding:10px 20px;
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:sticky;top:52px;z-index:20}
+input[type=search],select{border:1px solid var(--rule);border-radius:3px;padding:6px 9px;
+  font-family:inherit;font-size:12.5px;background:#fff}
+input[type=search]{min-width:190px}
+button{border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:3px;
+  padding:6px 13px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+button.ghost{background:#fff;color:var(--ink)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.count{font-size:12px;color:var(--mute)}
+.dirty{color:var(--magenta);font-weight:700}
+
+.note{background:#fff;border-left:3px solid var(--cyan);padding:13px 16px;margin:14px 20px;
+  font-size:12.5px;line-height:1.6}
+code{background:#EDF0F4;padding:1px 5px;border-radius:2px}
+
+.wrap{padding:0 20px 60px;display:flex;flex-direction:column;gap:10px}
+.card{background:#fff;border:1px solid var(--rule);border-left:3px solid var(--rule)}
+.card.done{border-left-color:#2E7D32}
+.card.pending{border-left-color:var(--magenta)}
+.chead{display:flex;align-items:center;gap:10px;padding:12px 14px;flex-wrap:wrap}
+.g{display:inline-block;width:19px;text-align:center;font-weight:800;font-size:11px;border-radius:2px;flex:none}
+.gS{background:var(--ink);color:#fff}.gA{background:#C9D4E6;color:var(--ink)}
+.gB{background:#EDF0F5;color:var(--ink-2)}.gC,.gD{background:#F2F4F7;color:var(--mute)}
+.cname{font-weight:700;font-size:14px}
+.cmeta{font-size:11.5px;color:var(--mute)}
+.cspacer{flex:1}
+.confsel{border:1px solid var(--rule);border-radius:3px;padding:5px 8px;font-family:inherit;
+  font-size:12px;background:var(--edit)}
+.cbody{padding:0 14px 14px;position:relative}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:30px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#EEF2F8;color:var(--ink);
+  border-radius:14px;padding:4px 6px 4px 12px;font-size:12.5px;font-weight:600}
+.chip button{all:unset;cursor:pointer;width:16px;height:16px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:#fff;background:var(--mute);
+  font-size:11px;line-height:1}
+.chip button:hover{background:var(--magenta)}
+.addrow{position:relative;display:flex;gap:6px}
+.addrow input{flex:1;border:1px solid var(--rule);border-radius:3px;padding:7px 10px;
+  font-family:inherit;font-size:12.5px}
+.addrow input:focus{outline:2px solid var(--cyan);outline-offset:-1px}
+.sugg{position:absolute;top:100%;left:0;right:70px;background:#fff;border:1px solid var(--rule);
+  border-top:0;box-shadow:0 8px 20px rgba(20,32,54,.12);z-index:5;max-height:180px;overflow-y:auto}
+.sugg div{padding:7px 10px;font-size:12.5px;cursor:pointer}
+.sugg div:hover{background:#F2F4F7}
+.sugg .sub{color:var(--mute);font-size:11px}
+.empty-hint{color:var(--mute);font-size:12px;font-style:italic}
+
+dialog{border:0;border-top:4px solid var(--ink);padding:0;max-width:620px;width:92%;
+  box-shadow:0 18px 50px rgba(20,32,54,.28)}
+dialog::backdrop{background:rgba(20,32,54,.45)}
+.dlg{padding:22px 24px 20px}
+dialog h3{margin:0 0 10px;font-size:15px;color:var(--ink)}
+dialog ol{margin:10px 0 0;padding-left:20px;line-height:1.85;font-size:13px}
+.close{margin-top:16px}
+.err{background:#fff;border-left:3px solid var(--magenta);padding:16px 18px;margin:20px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>아티스트 로스터 입력</h1>
+  <a href="index.html">← 대시보드</a>
+  <a href="master.html">거래처 마스터 전체 편집</a>
+  <div class="spacer"></div>
+  <div class="progress">
+    <span id="pctxt">0 / 0 검증완료</span>
+    <div class="pbar"><i id="pbar" style="width:0%"></i></div>
+  </div>
+</header>
+
+<div class="bar2">
+  <input type="search" id="q" placeholder="거래처명 검색">
+  <select id="fg"><option value="">등급 전체</option><option>S</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
+  <select id="fv">
+    <option value="pending">미검증만 (우선순위순)</option>
+    <option value="">전체</option>
+    <option value="done">검증완료만</option>
+  </select>
+  <div class="spacer"></div>
+  <span class="count" id="dirty"></span>
+  <button class="ghost" id="reset" disabled>되돌리기</button>
+  <button id="save" disabled>저장하기</button>
+</div>
+
+<div class="note">
+  거래처당 <b>대표 아티스트</b>를 입력하고 Enter — 여러 명 추가 가능합니다. 한 명이라도 입력하면
+  로스터확신도가 자동으로 <b>중간</b>이 되고, 계약서·공식 홈페이지로 직접 확인한 뒤 우측 상단 선택을
+  <b>높음</b>으로 바꿔야 뉴스 매칭에 실제로 사용됩니다. 입력 중 목록이 뜨면 Wikidata 등재 아티스트이니
+  참고만 하고, 최종 확인은 거래처의 공식 채널로 하십시오.
+</div>
+
+<div class="wrap" id="root">불러오는 중…</div>
+
+<dialog id="howto"><div class="dlg">
+  <h3>저장한 파일을 GitHub에 반영하기</h3>
+  <p style="font-size:13px;color:#3A4B6B;margin:0">
+    <code>companies.csv</code>가 다운로드 폴더에 저장되었습니다.</p>
+  <ol>
+    <li>저장소에서 <code>config</code> → <code>companies.csv</code> 를 엽니다</li>
+    <li>연필 아이콘(Edit this file)을 누릅니다</li>
+    <li>기존 내용을 전체 선택 후 삭제합니다 (<code>Ctrl+A</code> → <code>Delete</code>)</li>
+    <li>아래 <b>클립보드에 복사</b>를 누른 뒤 붙여넣습니다 (<code>Ctrl+V</code>)</li>
+    <li><b>Commit changes</b> 를 누릅니다</li>
+  </ol>
+  <div class="close">
+    <button id="copy">클립보드에 복사</button>
+    <button class="ghost" id="openrepo">GitHub에서 파일 열기</button>
+    <button class="ghost" id="shut">닫기</button>
+  </div>
+</div></dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const GRADE_ORDER = {S:0,A:1,B:2,C:3,D:4};
+
+let HEAD=[], ROWS=[], ORIG=[];
+
+function parseCSV(text){
+  const rows=[]; let f='',row=[],q=false;
+  text=text.replace(/^\uFEFF/,'');
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(f); f=''; }
+    else if(c==='\n'){ row.push(f); rows.push(row); row=[]; f=''; }
+    else if(c!=='\r') f+=c;
+  }
+  if(f||row.length){row.push(f);rows.push(row);}
+  const head=rows.shift().map(h=>h.trim());
+  return [head, rows.filter(r=>r.length>1).map(r=>Object.fromEntries(head.map((h,i)=>[h,r[i]??''])))];
+}
+function toCSV(head, rows){
+  const cell = v => /[",\n]/.test(v??'') ? '"'+String(v).replace(/"/g,'""')+'"' : (v??'');
+  return '\uFEFF' + [head.join(','), ...rows.map(r=>head.map(h=>cell(r[h])).join(','))].join('\n') + '\n';
+}
+function artistsOf(r){ return (r['대표아티스트_초안']||'').split('|').map(s=>s.trim()).filter(Boolean); }
+function setArtists(r, list){ r['대표아티스트_초안'] = list.join('|'); }
+
+function isChanged(i){
+  return ROWS[i]['대표아티스트_초안'] !== ORIG[i]['대표아티스트_초안'] ||
+         ROWS[i]['로스터확신도'] !== ORIG[i]['로스터확신도'];
+}
+function changedCount(){ return ROWS.reduce((n,_,i)=>n+(isChanged(i)?1:0),0); }
+function refreshDirty(){
+  const n = changedCount();
+  $('#dirty').textContent = n ? `변경 ${n}개사` : '';
+  $('#dirty').className = 'count' + (n?' dirty':'');
+  $('#save').disabled = !n; $('#reset').disabled = !n;
+}
+function refreshProgress(){
+  const done = ROWS.filter(r=>r['로스터확신도']==='높음').length;
+  $('#pctxt').textContent = `${done} / ${ROWS.length} 검증완료`;
+  $('#pbar').style.width = (ROWS.length? done/ROWS.length*100:0) + '%';
+}
+
+function filtered(){
+  const q=$('#q').value.trim().toLowerCase(), g=$('#fg').value, v=$('#fv').value;
+  let rows = ROWS.filter(r=>{
+    if(q && !(`${r['정식명']} ${r['검색명']}`.toLowerCase().includes(q))) return false;
+    if(g && r['모니터링등급']!==g) return false;
+    if(v==='done' && r['로스터확신도']!=='높음') return false;
+    if(v==='pending' && r['로스터확신도']==='높음') return false;
+    return true;
+  });
+  rows.sort((a,b)=> (GRADE_ORDER[a['모니터링등급']]??9) - (GRADE_ORDER[b['모니터링등급']]??9)
+    || Number(b['최근3년_백만']||0) - Number(a['최근3년_백만']||0));
+  return rows;
+}
+
+let debTimer=null;
+async function suggest(term, box){
+  clearTimeout(debTimer);
+  if(term.trim().length<2){ box.innerHTML=''; box.style.display='none'; return; }
+  debTimer = setTimeout(async ()=>{
+    try{
+      const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(term)}&language=ko&format=json&origin=*&limit=6`;
+      const r = await fetch(url);
+      const d = await r.json();
+      const items = (d.search||[]);
+      if(!items.length){ box.innerHTML=''; box.style.display='none'; return; }
+      box.innerHTML = items.map(it=>
+        `<div data-v="${esc(it.label)}"><b>${esc(it.label)}</b><br><span class="sub">${esc(it.description||'')}</span></div>`
+      ).join('');
+      box.style.display='block';
+    }catch(e){ box.innerHTML=''; box.style.display='none'; }
+  }, 380);
+}
+
+function cardHTML(r, i){
+  const artists = artistsOf(r);
+  const conf = r['로스터확신도'] || '미확인';
+  const done = conf==='높음';
+  const chips = artists.length
+    ? artists.map((a,ai)=>`<span class="chip">${esc(a)}<button data-i="${i}" data-ai="${ai}" aria-label="삭제">×</button></span>`).join('')
+    : '<span class="empty-hint">아직 입력된 아티스트가 없습니다</span>';
+  return `<div class="card ${done?'done':(artists.length?'pending':'pending')}" data-row="${i}">
+    <div class="chead">
+      <span class="g g${r['모니터링등급']}">${esc(r['모니터링등급'])}</span>
+      <span class="cname">${esc(r['정식명'])}</span>
+      <span class="cmeta">${esc(r['계열그룹']||'')} · 최근3년 ${Number(r['최근3년_백만']||0).toLocaleString('ko-KR')}백만</span>
+      <div class="cspacer"></div>
+      <select class="confsel" data-i="${i}">
+        ${['미확인','중간','높음','해당없음'].map(o=>`<option${o===conf?' selected':''}>${o}</option>`).join('')}
+      </select>
+    </div>
+    <div class="cbody">
+      <div class="chips" data-i="${i}">${chips}</div>
+      <div class="addrow">
+        <input type="text" placeholder="아티스트명 입력 후 Enter" data-i="${i}">
+        <div class="sugg" style="display:none"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function draw(){
+  const rows = filtered();
+  $('#root').innerHTML = rows.length
+    ? rows.map(r=>cardHTML(r, ROWS.indexOf(r))).join('')
+    : '<div class="empty-hint" style="padding:30px">조건에 맞는 거래처가 없습니다.</div>';
+}
+
+function addArtist(i, name){
+  name = name.trim();
+  if(!name) return;
+  const list = artistsOf(ROWS[i]);
+  if(!list.includes(name)) list.push(name);
+  setArtists(ROWS[i], list);
+  if(!ROWS[i]['로스터확신도'] || ROWS[i]['로스터확신도']==='미확인') ROWS[i]['로스터확신도']='중간';
+  draw(); refreshDirty(); refreshProgress();
+}
+function removeArtist(i, ai){
+  const list = artistsOf(ROWS[i]);
+  list.splice(ai,1);
+  setArtists(ROWS[i], list);
+  draw(); refreshDirty(); refreshProgress();
+}
+
+function onRootClick(e){
+  const btn = e.target.closest('.chip button');
+  if(btn){ removeArtist(+btn.dataset.i, +btn.dataset.ai); return; }
+  const sugg = e.target.closest('.sugg div');
+  if(sugg){
+    const input = sugg.closest('.addrow').querySelector('input');
+    addArtist(+input.dataset.i, sugg.dataset.v);
+    input.value=''; sugg.closest('.sugg').style.display='none';
+  }
+}
+function onRootInput(e){
+  if(e.target.matches('.addrow input')){
+    const box = e.target.nextElementSibling;
+    suggest(e.target.value, box);
+  }
+}
+function onRootKeydown(e){
+  if(e.target.matches('.addrow input') && e.key==='Enter'){
+    e.preventDefault();
+    addArtist(+e.target.dataset.i, e.target.value);
+    e.target.value='';
+    e.target.nextElementSibling.style.display='none';
+  }
+}
+function onRootChange(e){
+  if(e.target.matches('.confsel')){
+    ROWS[+e.target.dataset.i]['로스터확신도'] = e.target.value;
+    refreshDirty(); refreshProgress(); draw();
+  }
+}
+
+async function boot(){
+  let text;
+  try{ text = await fetch('data/companies.csv',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.text();}); }
+  catch(e){
+    $('#root').innerHTML = `<div class="err"><b>거래처 데이터를 읽지 못했습니다.</b><br><br>
+      이 페이지는 배포된 주소로 열어야 합니다. 로컬에서 파일을 더블클릭해 열면
+      <code>file://</code> 경로라 데이터 파일을 읽을 수 없습니다.<br>
+      <span style="color:#7A8598">오류: ${esc(e.message)}</span></div>`;
+    return;
+  }
+  [HEAD, ROWS] = parseCSV(text);
+  ORIG = ROWS.map(r=>({...r}));
+  ['q','fg','fv'].forEach(id=> $('#'+id).addEventListener(id==='q'?'input':'change', draw));
+  $('#root').addEventListener('click', onRootClick);
+  $('#root').addEventListener('input', onRootInput);
+  $('#root').addEventListener('keydown', onRootKeydown);
+  $('#root').addEventListener('change', onRootChange);
+  $('#reset').onclick = ()=>{ if(confirm('편집한 내용을 모두 되돌립니다.')){ ROWS=ORIG.map(r=>({...r})); draw(); refreshDirty(); refreshProgress(); } };
+  $('#save').onclick = save;
+  $('#shut').onclick = ()=>$('#howto').close();
+  $('#copy').onclick = async ()=>{
+    await navigator.clipboard.writeText(toCSV(HEAD, ROWS).replace(/^\uFEFF/,''));
+    $('#copy').textContent = '복사 완료';
+    setTimeout(()=>$('#copy').textContent='클립보드에 복사', 1800);
+  };
+  $('#openrepo').onclick = ()=>{
+    const repo = location.pathname.split('/').filter(Boolean)[0] || 'arania-intel';
+    const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+    window.open(m ? `https://github.com/${m[1]}/${repo}/edit/main/config/companies.csv`
+                  : 'https://github.com', '_blank');
+  };
+  $('#fv').value = 'pending';
+  draw(); refreshDirty(); refreshProgress();
+}
+
+window.addEventListener('beforeunload', e=>{ if(changedCount()){ e.preventDefault(); e.returnValue=''; } });
+boot();
+</script>
+</body>
+</html>
